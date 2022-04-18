@@ -1,1 +1,59 @@
+pipeline {
+      agent any
+      stages {
+          stage('21051215 Stage One') {
+          steps {
+            echo '21051215 Start of Pipeline'
+          }
+          }
+          stage('21051215 Stage Two') {
+          steps {
+            input('Push changes to Production?')
+          }
+          }
+          stage('21051215 Stage Three') {
+          when {
+                not {
+                    branch "Development NOT updated"
+                }
+          }
+          steps {
+                 sh '''#!/bin/bash
+                 targets=puppetclient1;
+                 locate_script='/testdir/work/devops_repo/script_to_run';
+                 docker cp $locate_script $targets://$locate_script;
+                 bolt script run $locate_script -t $targets -u clientadm -p user123 --no-host-key-check --run-as root;
+                 '''
+                 echo "Development container updated"
+          }
+          }
+          stage('21051215 Stage Four') {
+          steps {
+            input('Do you want to update to Production container: Proceed to Production')
+                
+          }
+          }
+          stage('21051215 Stage Five') {
+          when {
+                not {
+                    branch "Production NOT updated"
+                }
+          }
+          steps {
+                 sh '''#!/bin/bash
+                 targets=puppetclient2;
+                 locate_script='/testdir/work/devops_repo/script_to_run';
+                 docker cp $locate_script $targets://$locate_script;
+                 bolt script run $locate_script -t $targets -u clientadm -p user123 --no-host-key-check --run-as root;
+                 '''
+                 echo "Production container updated"
+          }
+          }
+          stage('Completed updating Operation') {
+          steps {
+            echo 'Completed updating to Production Container'
+          }
+          }
+      }
+}
 
