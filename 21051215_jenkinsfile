@@ -1,5 +1,5 @@
 pipeline {
-      agent any
+      agent any	
       stages {
           stage('21051215 Stage One') {
           steps {
@@ -29,13 +29,26 @@ pipeline {
           }
           stage('21051215 Stage Four') {
           steps {
-            echo 'Production website tested working'
+            input('Production website tested working')
                 
           }
           }
           stage('21051215 Stage Five') {
-          steps {
-            echo 'Production website is updated successfully'
+          when {
+                not {
+                    branch "Production NOT updated"
+                }
           }
+          steps {
+                 sh '''#!/bin/bash
+                 targets=puppetclient2;
+                 locate_script='/testdir/work/devops_repo/script_to_run';
+                 docker cp $locate_script $targets://$locate_script;
+                 bolt script run $locate_script -t $targets -u clientadm -p user123 --no-host-key-check --run-as root;
+                 '''
+                 echo "Production website is updated successfully"
+          }
+          }
+          
+      }
 }
-
